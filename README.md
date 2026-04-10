@@ -1,55 +1,77 @@
-# Algeria Weather Analytics
+# Algeria Weather Analytics & Drought Monitoring (SPI)
 
-Interactive weather analytics for Algerian SYNOP stations: fetch historical hourly data from Open‑Meteo, explore charts/tables, and export the result to CSV.
+A professional-grade weather analytics platform tailored for Algeria, providing real-time monitoring, historical data analysis, and advanced drought assessment using the Standardized Precipitation Index (SPI).
 
-## Features
+## 🌟 Key Features
 
-- Select station (Algerian SYNOP list) + date range
-- Fetch historical hourly series (temperature, precipitation, humidity, wind, pressure, cloud cover, dew point)
-- Views: charts (Recharts) / table / raw JSON + simulated SYNOP strings
-- CSV export of fetched data
+- **Comprehensive Station Network**: Support for over 100 Algerian weather stations with official WMO codes (e.g., Alger Port 60369, Tamanrasset 60680).
+- **Real-Time & Historical Data**: Hourly weather data including temperature, precipitation, humidity, wind speed, and pressure via Open-Meteo API.
+- **SYNOP Simulation**: Generates simulated AAXX SYNOP messages for professional meteorological reporting.
+- **Advanced Drought Analysis (SPI)**: 
+  - Calculates the **Standardized Precipitation Index (SPI)**.
+  - Uses a **30-year historical baseline** to determine drought severity.
+  - Visualizes wet/dry cycles over the last 24 months.
+- **Data Export**: Export station lists and weather data in **CSV** and **JSON** formats.
+- **Responsive UI**: Polished dashboard built with React, Tailwind CSS, and Framer Motion.
 
-## Data Source
+## 📊 Solution Architecture
 
-- Open‑Meteo Historical Archive API: https://archive-api.open-meteo.com/v1/archive
-
-## Tech Stack
-
-- Vite + React + TypeScript
-- Tailwind CSS (v4)
-- Recharts (charts), date-fns (date formatting)
-
-## Getting Started
-
-1. Install dependencies:
-
-```bash
-npm install
+```mermaid
+graph TD
+    User((User)) --> UI[React Frontend]
+    UI --> Controls[Sidebar Controls: City, Date, Analysis Type]
+    Controls --> API_Fetch[Data Fetching Service]
+    API_Fetch --> OpenMeteo[Open-Meteo Archive API]
+    OpenMeteo --> Data_Process[Data Processing Engine]
+    
+    subgraph Analysis Engine
+        Data_Process --> Stats[Basic Statistics]
+        Data_Process --> SYNOP[SYNOP Generator]
+        Data_Process --> SPI[SPI Calculator: 30y Baseline]
+    end
+    
+    Stats --> Charts[Recharts: Area & Bar Charts]
+    SYNOP --> RawView[Raw Data View]
+    SPI --> DroughtChart[SPI Visualization]
+    
+    Charts --> UI
+    RawView --> UI
+    DroughtChart --> UI
+    UI --> Export[Export Service: CSV/JSON]
 ```
 
-2. Run the dev server:
+## 🚀 Getting Started
 
-```bash
-npm run dev
-```
+### Prerequisites
+- Node.js 18+
+- npm
 
-The dev server is configured to run on port `3000`.
+### Installation
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Scripts
+## 🛠️ Tech Stack
+- **Frontend**: React 19, TypeScript, Vite
+- **Styling**: Tailwind CSS
+- **Charts**: Recharts
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **Data Source**: Open-Meteo Historical API
 
-- `npm run dev` — start Vite dev server (port 3000)
-- `npm run build` — production build
-- `npm run preview` — preview production build
-- `npm run lint` — TypeScript typecheck (`tsc --noEmit`)
+## 📖 Methodology: SPI Analysis
+The Standardized Precipitation Index (SPI) is the WMO-recommended index for drought monitoring. 
+1. **Baseline**: We fetch 30 years of daily precipitation data for the selected coordinates.
+2. **Standardization**: We calculate the mean and standard deviation for each calendar month.
+3. **Index**: The SPI value represents the number of standard deviations the current precipitation deviates from the long-term mean.
+   - **SPI ≤ -2.0**: Extremely Dry
+   - **SPI ≥ 2.0**: Extremely Wet
 
-## Project Structure
-
-- `src/App.tsx` — main UI and data-fetching logic
-- `src/constants.ts` — Algerian stations list used by the UI
-- `src/types.ts` — TypeScript types
-- `src/lib/utils.ts` — small utilities (classnames + CSV export)
-- `algerian_stations.csv` / `algerian_stations.json` — station datasets (not currently used by the app)
-
-## Notes
-
-- `GEMINI_API_KEY` is referenced in the Vite config, but the current UI does not use Gemini. Avoid exposing secrets to the browser; if AI features are added, use a server-side proxy.
+## 📄 License
+This project is licensed under the Apache-2.0 License.
