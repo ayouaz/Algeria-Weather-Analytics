@@ -19,7 +19,10 @@ import {
   Loader2,
   AlertCircle,
   ChevronRight,
-  Info
+  Info,
+  Waves,
+  Navigation,
+  Anchor
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -47,10 +50,12 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [weatherData, setWeatherData] = useState<HourlyData[]>([]);
-  const [view, setView] = useState<'charts' | 'table' | 'raw' | 'drought'>('charts');
+  const [view, setView] = useState<'charts' | 'table' | 'raw' | 'drought' | 'marine'>('charts');
   const [rawResponse, setRawResponse] = useState<any>(null);
   const [spiData, setSpiData] = useState<any[]>([]);
+  const [marineData, setMarineData] = useState<any[]>([]);
   const [droughtLoading, setDroughtLoading] = useState(false);
+  const [marineLoading, setMarineLoading] = useState(false);
 
   const fetchWeather = async () => {
     setLoading(true);
@@ -172,6 +177,38 @@ export default function App() {
       setError(err instanceof Error ? err.message : 'Drought analysis failed');
     } finally {
       setDroughtLoading(false);
+    }
+  };
+
+  const fetchMarineWeather = async () => {
+    setMarineLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `https://marine-api.open-meteo.com/v1/marine?latitude=${selectedCity.lat}&longitude=${selectedCity.lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&timezone=auto&forecast_days=3`
+      );
+      
+      if (!response.ok) throw new Error('Failed to fetch marine weather data');
+      
+      const data = await response.json();
+      if (!data.hourly || !data.hourly.time) throw new Error('No marine data available for this location');
+
+      const formattedMarine: any[] = data.hourly.time.map((time: string, index: number) => ({
+        time: format(parseISO(time), 'yyyy-MM-dd HH:mm'),
+        waveHeight: data.hourly.wave_height[index],
+        waveDir: data.hourly.wave_direction[index],
+        wavePeriod: data.hourly.wave_period[index],
+        swellHeight: data.hourly.swell_wave_height[index],
+        swellDir: data.hourly.swell_wave_direction[index],
+        swellPeriod: data.hourly.swell_wave_period[index],
+      }));
+
+      setMarineData(formattedMarine);
+      setView('marine');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Marine analysis failed. This location might be too far from the coast.');
+    } finally {
+      setMarineLoading(false);
     }
   };
 
@@ -311,6 +348,21 @@ export default function App() {
                     </>
                   )}
                 </button>
+
+                <button 
+                  onClick={fetchMarineWeather}
+                  disabled={marineLoading}
+                  className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-400 text-white font-bold py-3 rounded-xl shadow-lg shadow-cyan-200 transition-all flex items-center justify-center gap-2 group"
+                >
+                  {marineLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Waves className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      حالة البحر (للصيادين)
+                    </>
+                  )}
+                </button>
               </div>
 
             {weatherData.length > 0 && (
@@ -445,6 +497,16 @@ export default function App() {
                     >
                       <BarChart3 className="w-4 h-4" />
                       مؤشر الجفاف (SPI)
+                    </button>
+                    <button 
+                      onClick={() => setView('marine')}
+                      className={cn(
+                        "flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
+                        view === 'marine' ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-700"
+                      )}
+                    >
+                      <Waves className="w-4 h-4" />
+                      حالة البحر
                     </button>
                   </div>
 
@@ -590,6 +652,113 @@ export default function App() {
                           <pre className="text-[10px] font-mono text-slate-600 overflow-auto max-h-[400px] bg-white p-4 rounded-xl border border-slate-100">
                             {JSON.stringify(rawResponse, null, 2)}
                           </pre>
+                        </div>
+                      </div>
+                    ) : view === 'marine' ? (
+                      <div className="space-y-8">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div>
+                            <h3 className="text-xl font-bold text-slate-900">توقعات حالة البحر (3 أيام)</h3>
+                            <p className="text-sm text-slate-500 mt-1">بيانات الموج والرياح البحرية للملاحة والصيد</p>
+                          </div>
+                          <div className="bg-cyan-50 px-4 py-2 rounded-xl border border-cyan-100 flex items-center gap-2">
+                            <Anchor className="w-4 h-4 text-cyan-600" />
+                            <span className="text-xs font-bold text-cyan-600">الميناء: {selectedCity.name}</span>
+                          </div>
+                        </div>
+
+                        {/* Current Marine Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div className="bg-blue-50 p-3 rounded-xl">
+                              <Waves className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase font-bold text-slate-400">ارتفاع الموج</p>
+                              <p className="text-xl font-black text-slate-900">{marineData[0]?.waveHeight} m</p>
+                            </div>
+                          </div>
+                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div className="bg-indigo-50 p-3 rounded-xl">
+                              <Navigation className="w-6 h-6 text-indigo-600" style={{ transform: `rotate(${marineData[0]?.waveDir}deg)` }} />
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase font-bold text-slate-400">اتجاه الموج</p>
+                              <p className="text-xl font-black text-slate-900">{marineData[0]?.waveDir}°</p>
+                            </div>
+                          </div>
+                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div className="bg-cyan-50 p-3 rounded-xl">
+                              <Calendar className="w-6 h-6 text-cyan-600" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase font-bold text-slate-400">فترة الموج</p>
+                              <p className="text-xl font-black text-slate-900">{marineData[0]?.wavePeriod} s</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Marine Chart */}
+                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                          <h4 className="text-sm font-bold text-slate-700 mb-6">تطور ارتفاع الموج (72 ساعة القادمة)</h4>
+                          <div className="h-[300px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={marineData}>
+                                <defs>
+                                  <linearGradient id="colorWave" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#0891b2" stopOpacity={0.1}/>
+                                    <stop offset="95%" stopColor="#0891b2" stopOpacity={0}/>
+                                  </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                <XAxis dataKey="time" hide />
+                                <YAxis unit="m" fontSize={10} />
+                                <Tooltip 
+                                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                />
+                                <Area 
+                                  type="monotone" 
+                                  dataKey="waveHeight" 
+                                  stroke="#0891b2" 
+                                  strokeWidth={3}
+                                  fillOpacity={1} 
+                                  fill="url(#colorWave)" 
+                                  name="ارتفاع الموج"
+                                />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+
+                        {/* Marine Table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm text-right">
+                            <thead>
+                              <tr className="border-b border-slate-100">
+                                <th className="px-6 py-4 font-bold text-slate-500">الوقت</th>
+                                <th className="px-6 py-4 font-bold text-slate-500 text-center">الموج (m)</th>
+                                <th className="px-6 py-4 font-bold text-slate-500 text-center">الاتجاه</th>
+                                <th className="px-6 py-4 font-bold text-slate-500 text-center">الفترة (s)</th>
+                                <th className="px-6 py-4 font-bold text-slate-500 text-center">السويل (m)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {marineData.filter((_, i) => i % 3 === 0).slice(0, 24).map((row, i) => (
+                                <tr key={i} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                                  <td className="px-6 py-4 font-medium">{row.time}</td>
+                                  <td className="px-6 py-4 text-center font-bold text-blue-600">{row.waveHeight}</td>
+                                  <td className="px-6 py-4 text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                      <Navigation className="w-3 h-3" style={{ transform: `rotate(${row.waveDir}deg)` }} />
+                                      {row.waveDir}°
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-center">{row.wavePeriod}</td>
+                                  <td className="px-6 py-4 text-center text-slate-400">{row.swellHeight}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                     ) : (

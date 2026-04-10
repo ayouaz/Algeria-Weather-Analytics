@@ -125,6 +125,10 @@ export const ALGERIAN_CITIES: City[] = [
   { name: "TIREK", code: "60688", lat: 21.5, lon: 3.5, alt: 400 },
   { name: "TIRIRINE", code: "60612", lat: 28.5, lon: 6.5, alt: 400 },
   { name: "TIZI-OUZOU", code: "60395", lat: 36.71, lon: 4.05, alt: 200 },
+  { name: "TIPAZA", code: "60378", lat: 36.59, lon: 2.44, alt: 10 },
+  { name: "CHERCHELL", code: "60375", lat: 36.61, lon: 2.19, alt: 10 },
+  { name: "COLLO", code: "60354", lat: 37.00, lon: 6.56, alt: 10 },
+  { name: "EL KALA", code: "60367", lat: 36.90, lon: 8.44, alt: 10 },
   { name: "TLEMCEN-ZENATA", code: "60531", lat: 35.01, lon: -1.45, alt: 247 },
   { name: "TOUGGOURT", code: "60555", lat: 33.06, lon: 6.09, alt: 85 }
 ];
