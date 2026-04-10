@@ -1,0 +1,5 @@
+{
+  "name": "Algeria Weather Analytics",
+  "description": "A comprehensive weather data analysis tool for Algerian states, featuring historical data, interactive charts, and CSV exports.",
+  "requestFramePermissions": []
+}
