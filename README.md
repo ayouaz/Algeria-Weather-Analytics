@@ -16,6 +16,10 @@ A professional-grade weather analytics platform tailored for Algeria, providing 
 
 ## 📊 Solution Architecture
 
+![Architecture](./architecture.png)
+
+> Fichier source éditable: [architecture.excalidraw](./architecture.excalidraw). Voir la version détaillée dans [docs/architecture.md](./docs/architecture.md).
+
 ```mermaid
 graph TD
     User((User)) --> UI[React Frontend]
